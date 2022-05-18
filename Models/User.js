@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     type: String,
   },
+  permission: {
+    required: true,
+    type: String
+  },
+  namespaces: []
 });
 
 userSchema.plugin(passportLocalMongoose);

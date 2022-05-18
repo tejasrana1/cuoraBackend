@@ -29,34 +29,77 @@ const io = socketio(expressServer, {
     methods: ["GET", "POST"],
   },
 });
-
+var messages=[]
 async function find() {
-  const namespace = await Namespace.find({});
-  console.log(namespace);
-  namespace.forEach((ns) => {
-    io.of(`/${ns.name}`).on("connect", (socket1) => {
-      console.log(ns.name, socket1.id);
-      io.of(`/${ns.name}`).on("newMessage", (message) => {
-        console.log(message);
+  // const namespace = await Namespace.find({});
+  // console.log(namespace);
+  // namespace.forEach((ns) => {
+    // console.log(ns);
+    io.on("connect", (socket1) => {
+      // console.log(ns.name, socket1.id);
+      // socket1.on("name",(name)=>{
+      //   console.log(name);
+      // })
+      socket1.on("newMessage",async (message) => {
+        // console.log(message.user);
+        // nm = await Namespace.find({name: message.namespace})
+        // console.log(message);
+        // console.log(nm);
+        let nmspace = await Namespace.findOne({name: message.namespace})
+        nmspace.messages.push(message)
+        nmspace.save()
+        console.log(nmspace);
+      //   Namespace.update(
+      //     { name: message.namespace}, 
+      //     { $push: { messages: message } }
+      // );
+        messages.push(message)
+        io.emit("messageFromServer",{message})
+        // console.log(message);
       });
+      app.post("/deleteMsg", async(req,res)=>{
+        console.log(req.body.message.message);
+        let nm = await Namespace.findOne({name: req.body.namespace})
+        // console.log(nm.messages.length);
+        let arr = nm.messages
+        arr = arr.filter((element)=>{
+          return element.message != req.body.message.message
+        })
+        nm.messages = arr
+        nm.save()
+        io.emit("chatHistory", {messages: nm.messages})
+        res.json({
+          res: "success",
+        })
+      })
+      async function chatHistory(namespace){
+        console.log(namespace);
+        const nm = await Namespace.findOne({name: namespace})
+        const msgs = nm.messages
+        
+      }
     });
-  });
+  // });
 }
 find();
 
-io.on("connect", (socket) => {
-  console.log("Some One Joined");
-  socket.on("sendMsg", (id) => {
-    console.log(id);
-    console.log(io.of("/").sockets.size);
-  });
-  socket.on("disconnect", () => {
-    console.log("gone");
-  });
-  socket.on("namespace", (name) => {
-    console.log(name);
-    io.of("/" + name).on("connect", (socket1) => {
-      console.log(socket1.id);
-    });
-  });
-});
+
+// io.on("connect", (socket) => {
+//   socket.on("namespaceChange", (n)=>{
+//     console.log("changed",n);
+//   })
+//   console.log("Some One Joined");
+//   socket.on("sendMsg", (id) => {
+//     console.log(id);
+//     console.log(io.of("/").sockets.size);
+//   });
+//   socket.on("disconnect", () => {
+//     console.log("gone");
+//   });
+//   socket.on("namespace", (name) => {
+//     console.log(name);
+//     io.of("/" + name).on("connect", (socket1) => {
+//       console.log(socket1.id);
+//     });
+//   });
+// });

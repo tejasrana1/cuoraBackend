@@ -6,6 +6,9 @@ const namespaceSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  messages: {
+    type: Array
+  }
 });
 
 module.exports = mongoose.model("Namespace", namespaceSchema);

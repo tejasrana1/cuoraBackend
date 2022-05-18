@@ -30,6 +30,7 @@ router.post("/register", async (req, res) => {
       email: req.body.info.email,
       address: req.body.info.address,
       username: req.body.info.uid,
+      permission: req.body.info.permission
     });
     console.log(newUser);
     const registeredUser = await User.register(newUser, req.body.info.password);
@@ -72,4 +73,41 @@ router.post("/user", async (req, res) => {
   });
 });
 
+
+router.post("/details", async(req,res)=>{
+  console.log(req.body.id);
+  const reqUser = await User.findOne({_id: req.body.id})
+  if(reqUser)
+  res.json({
+    res: "success",
+    data: reqUser
+  })
+  else
+  res.json({
+    res: "blank"
+  })
+})
+
+
+router.post("/updateDetails", async(req,res)=>{
+  try{
+    const doc = await User.updateOne({_id: req.body.data.id},{
+      name: req.body.data.name,
+      phone: req.body.data.phone,
+      address: req.body.data.address,
+      email: req.body.data.email
+    })
+    const user = await User.findOne({_id: req.body.data.id})
+    res.json({
+      res: "success",
+      data: user
+    })
+  }
+  catch(e){
+    res.status(500).json({
+      res: "error",
+      error: e
+    })
+  }
+})
 module.exports = router;
